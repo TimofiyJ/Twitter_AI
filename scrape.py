@@ -36,9 +36,9 @@ def scrape_single_tweet(url: str) -> dict:
             return data['data']['tweetResult']['result']
 
 
-def scrape_profile_tweets(nickname: str) -> pd.DataFrame:
-    scraper = Nitter(log_level = 1,skip_instance_check= False)
-    tweets = scraper.get_tweets(nickname,mode="user",number=10)
+def scrape_profile_tweets(username: str, number: int) -> pd.DataFrame:
+    scraper = Nitter(log_level=1, skip_instance_check=False)
+    tweets = scraper.get_tweets(username, mode="user", number=number)
     data = {
     'link':[],
     'text':[],
@@ -63,6 +63,14 @@ def scrape_profile_tweets(nickname: str) -> pd.DataFrame:
 
     return df
 
+
 if __name__ == "__main__":
-    # print(scrape_single_tweet("https://twitter.com/historyinmemes"))
-    print(scrape_profile_tweets("historyinmemes"))
+
+    final_df = pd.DataFrame({"text"})
+    usernames = ["taylorswift13", "StephenKing", "elonmusk", "KaiCenat", "BarackObama", "jimmyfallon", "badbanana", "limitlessmindon"]
+
+    for username in usernames:
+        tweets_df = scrape_profile_tweets(username, 10)
+        final_df = pd.concat([final_df, tweets_df["text"]], ignore_index=True)
+
+    final_df.to_csv("data.csv")
