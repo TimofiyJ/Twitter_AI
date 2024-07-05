@@ -67,7 +67,7 @@ def scrape_profile_tweets(username: str, number: int) -> pd.DataFrame:
 if __name__ == "__main__":
 
     final_df = pd.DataFrame({"text"})
-    usernames = ["taylorswift13", "StephenKing", "elonmusk", "KaiCenat", "BarackObama", "jimmyfallon", "badbanana", "limitlessmindon"]
+    usernames = ["elonmusk"]
 
     for username in usernames:
         tweets_df = scrape_profile_tweets(username, 10)

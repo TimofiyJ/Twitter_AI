@@ -6,7 +6,9 @@ from ntscraper import Nitter
 
 # Function to scrape profile tweets
 def scrape_profile_tweets(username: str, number: int) -> pd.DataFrame:
+    st.write("Creating Nitter")
     scraper = Nitter(log_level=1, skip_instance_check=False)
+    st.write("Created Nitter")
     tweets = scraper.get_tweets(username, mode="user", number=number)
     data = {
         'link': [],
@@ -41,6 +43,7 @@ if st.button("Fetch Tweets"):
     if username:
         with st.spinner(f"Fetching {number_of_tweets} tweets for @{username}..."):
             try:
+                st.write("Fetching")
                 tweets_df = scrape_profile_tweets(username, number_of_tweets)
                 st.success(f"Successfully fetched {number_of_tweets} tweets for @{username}")
                 st.write(tweets_df)
