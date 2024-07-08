@@ -71,7 +71,6 @@ def scrape_profile_tweets(username: str, number: int) -> pd.DataFrame:
             continue
 
         else:
-            print(tweet)
             data["link"].append(tweet["link"])
             data["text"].append(tweet["text"])
             data["user"].append(tweet["user"]["name"])
