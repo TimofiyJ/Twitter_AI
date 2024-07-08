@@ -33,44 +33,75 @@ def scrape_single_tweet(url: str) -> dict:
         tweet_calls = [f for f in _xhr_calls if "TweetResultByRestId" in f.url]
         for xhr in tweet_calls:
             data = xhr.json()
-            return data['data']['tweetResult']['result']
+            return data["data"]["tweetResult"]["result"]
 
 
 def scrape_profile_tweets(username: str, number: int) -> pd.DataFrame:
-    scraper = Nitter(log_level=1, skip_instance_check=False)
-    tweets = scraper.get_tweets(username, mode="user", number=number)
     data = {
-    'link':[],
-    'text':[],
-    'user':[],
-    'likes':[],
-    'quotes':[],
-    'retweets':[],
-    'comments':[]
+        "link": [],
+        "text": [],
+        "user": [],
+        "likes": [],
+        "quotes": [],
+        "retweets": [],
+        "comments": [],
+        "media": [],
     }
+    tweets_amount = number
+    validated_tweets = 0
+    while validated_tweets<number:
 
-    for tweet in tweets['tweets']:
-        data['link'].append(tweet['link'])
-        data['text'].append(tweet['text'])
-        data['user'].append(tweet['user']['name'])
-        data['likes'].append(tweet['stats']['likes'])
-        data['quotes'].append(tweet['stats']['quotes'])    
-        data['retweets'].append(tweet['stats']['retweets'])    
-        data['comments'].append(tweet['stats']['comments']) 
+        scraper = Nitter(log_level=1, skip_instance_check=False)
+        tweets = scraper.get_tweets(username, mode="user", number=tweets_amount)
+
+        for tweet in tweets["tweets"]:
+            if tweet["is-retweet"] is True:
+                continue
+
+            else:
+                validated_tweets+=1
+
+        tweets_amount = tweets_amount + 5
+
+    scraper = Nitter(log_level=1, skip_instance_check=False)
+    tweets = scraper.get_tweets(username, mode="user", number=tweets_amount)
+
+    for tweet in tweets["tweets"]:
+        if tweet["is-retweet"] is True:
+            continue
+
+        else:
+            print(tweet)
+            data["link"].append(tweet["link"])
+            data["text"].append(tweet["text"])
+            data["user"].append(tweet["user"]["name"])
+            data["likes"].append(tweet["stats"]["likes"])
+            data["quotes"].append(tweet["stats"]["quotes"])
+            data["retweets"].append(tweet["stats"]["retweets"])
+            data["comments"].append(tweet["stats"]["comments"])
+
+            if (
+                len(tweet["pictures"]) != 0
+                or len(tweet["videos"]) != 0
+                or len(tweet["gifs"]) != 0
+            ):
+                data["media"].append(True)
+            else:
+                data["media"].append(False)
 
     df = pd.DataFrame(data)
-    df.head()
 
     return df
 
 
 if __name__ == "__main__":
+    # final_df = pd.DataFrame({"text"})
+    # usernames = ["elonmusk"]
 
-    final_df = pd.DataFrame({"text"})
-    usernames = ["elonmusk"]
-
-    for username in usernames:
-        tweets_df = scrape_profile_tweets(username, 10)
-        final_df = pd.concat([final_df, tweets_df["text"]], ignore_index=True)
-
+    # for username in usernames:
+    #     tweets_df = scrape_profile_tweets(username, 5)
+    #     print(tweets_df)           
+    #     final_df = pd.concat([final_df, tweets_df], ignore_index=True)
+    username = "elonmusk"
+    final_df = scrape_profile_tweets(username, 5)
     final_df.to_csv("data.csv")
