@@ -25,6 +25,9 @@ def improve_tweet(username, tweet, number_of_tweets):
 
     if username == USERNAME and NUMBER_OF_TWEETS == number_of_tweets:
         tweets = st.session_state['TWEETS']
+    st.write(f"USERNAME: {st.session_state['USERNAME']}")
+    st.write(f"NUMBER_OF_TWEETS: {st.session_state['NUMBER_OF_TWEETS']}")
+    st.write(f"TWEETS: {st.session_state['TWEETS']}")
 
     instruction = analyser_tools.analyse_tool(tweets=tweets)
 
