@@ -37,22 +37,23 @@ def scrape_single_tweet(url: str) -> dict:
 
 
 def scrape_profile_tweets(username: str, number: int) -> pd.DataFrame:
-    data = {
-        "link": [],
-        "text": [],
-        "user": [],
-        "likes": [],
-        "quotes": [],
-        "retweets": [],
-        "comments": [],
-        "media": [],
-    }
+    data = {}
     tweets_amount = number
     validated_tweets = 0
     while validated_tweets<number:
 
         scraper = Nitter(log_level=1, skip_instance_check=False)
         tweets = scraper.get_tweets(username, mode="user", number=tweets_amount)
+        data = {
+                    "link": [],
+                    "text": [],
+                    "user": [],
+                    "likes": [],
+                    "quotes": [],
+                    "retweets": [],
+                    "comments": [],
+                    "media": [],
+                }
 
         for tweet in tweets["tweets"]:
             if tweet["is-retweet"] is True:
@@ -60,33 +61,23 @@ def scrape_profile_tweets(username: str, number: int) -> pd.DataFrame:
 
             else:
                 validated_tweets+=1
+                data["link"].append(tweet["link"])
+                data["text"].append(tweet["text"])
+                data["user"].append(tweet["user"]["name"])
+                data["likes"].append(tweet["stats"]["likes"])
+                data["quotes"].append(tweet["stats"]["quotes"])
+                data["retweets"].append(tweet["stats"]["retweets"])
+                data["comments"].append(tweet["stats"]["comments"])
+                if (
+                    len(tweet["pictures"]) != 0
+                    or len(tweet["videos"]) != 0
+                    or len(tweet["gifs"]) != 0
+                ):
+                    data["media"].append(True)
+                else:
+                    data["media"].append(False)
 
         tweets_amount = tweets_amount + 5
-
-    scraper = Nitter(log_level=1, skip_instance_check=False)
-    tweets = scraper.get_tweets(username, mode="user", number=tweets_amount)
-
-    for tweet in tweets["tweets"]:
-        if tweet["is-retweet"] is True:
-            continue
-
-        else:
-            data["link"].append(tweet["link"])
-            data["text"].append(tweet["text"])
-            data["user"].append(tweet["user"]["name"])
-            data["likes"].append(tweet["stats"]["likes"])
-            data["quotes"].append(tweet["stats"]["quotes"])
-            data["retweets"].append(tweet["stats"]["retweets"])
-            data["comments"].append(tweet["stats"]["comments"])
-
-            if (
-                len(tweet["pictures"]) != 0
-                or len(tweet["videos"]) != 0
-                or len(tweet["gifs"]) != 0
-            ):
-                data["media"].append(True)
-            else:
-                data["media"].append(False)
 
     df = pd.DataFrame(data)
 
