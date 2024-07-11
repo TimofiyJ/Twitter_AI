@@ -13,8 +13,7 @@ def write_tool(
     tweet,
     references: Annotated[List[str], "List of references for the writing style"],
     instruction: Annotated[str, "Instruction to fit in a style format"],
-    max_length: Annotated[int, "Maximum number of characters for the tweet"],
-    old_tweet: Annotated[str, "Old suggestion by model"],
+    words_amount: Annotated[int, "Approximate amount of characters"],
     topic: Annotated[str, "Topic for a tweet"],
 ) -> str:
     """Tool for the Analyser Agent to write social media post
@@ -38,15 +37,16 @@ def write_tool(
 
     base_prompt = None
     llm_result = None
-
+    print(words_amount)
     if tweet is not None:
         base_prompt = PromptTemplate(
             template="""You are provided with tweet examples and instruction to fit in these tweet's style.
-            References: {references}
+            Your goal is to generate tweet based on this text: {text}
             Instruction: {instruction}
-            Text: {text}
-            Do not do text longer than {max_length} characters""",
-            input_variables=["references", "instruction", "text", "max_length", "old_tweet"],
+            References: {references}
+            Ignore instruction about the length of tweet, your generated tweet has to be {words_amount} words
+            """,
+            input_variables=["references", "instruction", "text", "words_amount"],
         )
         chain = base_prompt | llm
         llm_result = chain.invoke(
@@ -54,19 +54,18 @@ def write_tool(
                 "references": tweet_references,
                 "instruction": instruction,
                 "text": tweet,
-                "max_length": max_length,
-                "old_tweet": old_tweet
+                "words_amount": words_amount
             }
         )
     else:
         base_prompt = PromptTemplate(
             template="""You are provided with tweet examples and instruction to fit in these tweet's style.
-            You are also provided with topic so you create tweet based on this topic
+            Your goal is to generate tweet that is based on this topic: {text}
             References: {references}
             Instruction: {instruction}
-            Topic: {text}
-            Do not do text longer than {max_length} characters""",
-            input_variables=["references", "instruction", "text", "max_length", "old_tweet"],
+            Ignore instruction about the length of tweet, your generated tweet has to be {words_amount} words
+            """,
+            input_variables=["references", "instruction", "text", "words_amount"],
         )
         chain = base_prompt | llm
         llm_result = chain.invoke(
@@ -74,8 +73,7 @@ def write_tool(
                 "references": tweet_references,
                 "instruction": instruction,
                 "text": topic,
-                "max_length": max_length,
-                "old_tweet": old_tweet
+                "words_amount": words_amount
             }
         )
 
@@ -115,8 +113,10 @@ def analyse_tool(
 
     base_prompt = PromptTemplate(
         template="""You are provided with user tweets and their statistics. Find the similarities or special style
-        between these tweets and analyse the most popular of them. Your answer is to generate instruction that helps create 
-        tweets with similar style.
+        between these tweets and analyse the most popular of them.
+        Please return only instruction that helps create tweets with similar style.
+        Do not include limitation of words or sertain length for tweet in instruction.
+        Tweets to analyze:
         {tweets}""",
         input_variables=["tweets"],
     )
